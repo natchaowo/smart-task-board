@@ -9,22 +9,26 @@ const Task = require("./models/Task");
 const app = express();
 
 
-// --- Middlewares ---
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type"]
-  })
-);
+// --- CORS Configuration ---
+const corsOptions = {
+  origin: "*", // อนุญาตทุก domain (Vercel เรียกได้)
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type"],
+};
 
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
+
+// --- Middlewares ---
 app.use(express.json());
 
 
 // --- Connect MongoDB ---
-mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.error("❌ MongoDB Error:", err));
+  .catch((err) => console.error("❌ MongoDB Error:", err));
 
 
 // --- Test Route ---
@@ -49,12 +53,11 @@ app.get("/tasks", async (req, res) => {
 // POST create task
 app.post("/tasks", async (req, res) => {
   try {
-
     const { title, category, priority } = req.body;
 
     if (!title || !category) {
       return res.status(400).json({
-        error: "ต้องมี title และ category"
+        error: "ต้องมี title และ category",
       });
     }
 
@@ -62,16 +65,15 @@ app.post("/tasks", async (req, res) => {
       title,
       category,
       priority: priority || "Medium",
-      status: "Pending"
+      status: "Pending",
     });
 
     const savedTask = await newTask.save();
 
     res.status(201).json(savedTask);
-
   } catch (err) {
     res.status(400).json({
-      error: err.message
+      error: err.message,
     });
   }
 });
@@ -80,27 +82,22 @@ app.post("/tasks", async (req, res) => {
 // PUT toggle status
 app.put("/tasks/:id", async (req, res) => {
   try {
-
     const task = await Task.findById(req.params.id);
 
     if (!task) {
       return res.status(404).json({
-        error: "ไม่พบรายการ"
+        error: "ไม่พบรายการ",
       });
     }
 
-    task.status =
-      task.status === "Pending"
-        ? "Completed"
-        : "Pending";
+    task.status = task.status === "Pending" ? "Completed" : "Pending";
 
     await task.save();
 
     res.json(task);
-
   } catch (err) {
     res.status(400).json({
-      error: "อัปเดตสถานะไม่สำเร็จ"
+      error: "อัปเดตสถานะไม่สำเร็จ",
     });
   }
 });
@@ -109,16 +106,14 @@ app.put("/tasks/:id", async (req, res) => {
 // DELETE task
 app.delete("/tasks/:id", async (req, res) => {
   try {
-
     await Task.findByIdAndDelete(req.params.id);
 
     res.json({
-      message: "ลบสำเร็จ"
+      message: "ลบสำเร็จ",
     });
-
   } catch (err) {
     res.status(400).json({
-      error: "ลบไม่สำเร็จ"
+      error: "ลบไม่สำเร็จ",
     });
   }
 });
