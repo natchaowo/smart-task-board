@@ -1,4 +1,4 @@
-// --- [1. Import Libraries] ---
+// --- Import Libraries ---
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -9,18 +9,31 @@ const Task = require("./models/Task");
 const app = express();
 
 
-// --- [2. Middlewares] ---
-app.use(cors());
+// --- Middlewares ---
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type"]
+  })
+);
+
 app.use(express.json());
 
 
-// --- [3. Connect MongoDB] ---
+// --- Connect MongoDB ---
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.error("❌ MongoDB Error:", err));
 
 
-// --- [4. API Routes] ---
+// --- Test Route ---
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
+
+
+// --- API Routes ---
 
 // GET all tasks
 app.get("/tasks", async (req, res) => {
@@ -111,9 +124,9 @@ app.delete("/tasks/:id", async (req, res) => {
 });
 
 
-// --- [5. Start Server] ---
+// --- Start Server ---
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
