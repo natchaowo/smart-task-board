@@ -4,7 +4,7 @@ import './App.css';
  
 // ตรวจสอบว่า Port 5000 ตรงกับที่ Backend รันอยู่
 // const API_URL = "http://localhost:5000/tasks";
-const API_URL = "https://natcha-special-topics.onrender.com/api/tasks";
+const API_URL = "https://natcha-special-topics.onrender.com/tasks";
  
 function App() {
   const [tasks, setTasks] = useState([]);
