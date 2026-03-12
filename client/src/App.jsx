@@ -1,106 +1,137 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './App.css';
- 
-// ตรวจสอบว่า Port 5000 ตรงกับที่ Backend รันอยู่
-// const API_URL = "http://localhost:5000/tasks";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "./App.css";
+
+// URL ของ backend
 const API_URL = "https://natcha-special-topics.onrender.com/tasks";
- 
+
 function App() {
+
   const [tasks, setTasks] = useState([]);
   const [input, setInput] = useState("");
- 
-  // ดึงข้อมูลทั้งหมดจาก MongoDB เมื่อเปิดหน้าเว็บ
+
+  // โหลด task ตอนเปิดเว็บ
   useEffect(() => {
     fetchTasks();
   }, []);
- 
+
   const fetchTasks = async () => {
     try {
       const res = await axios.get(API_URL);
       setTasks(res.data);
     } catch (err) {
-      console.error("ไม่สามารถดึงข้อมูลได้:", err);
+      console.error("โหลดข้อมูลไม่ได้:", err);
     }
   };
- 
-  // 1. Input Field: เพิ่มงานใหม่ (ส่งค่า 'text' ให้ตรงกับ Schema)
+
+  // เพิ่ม task
   const addTask = async (e) => {
     e.preventDefault();
+
     if (!input.trim()) return;
+
     try {
-      // ส่ง Object { text: input } ไปที่ Backend
-      const res = await axios.post(API_URL, { text: input });
-      setTasks([res.data, ...tasks]); // อัปเดตรายการในหน้าจอทันที
-      setInput(""); // ล้างช่องกรอก
+      const res = await axios.post(API_URL, {
+        title: input,
+        category: "Personal",
+        priority: "Medium"
+      });
+
+      setTasks([res.data, ...tasks]);
+      setInput("");
+
     } catch (err) {
       console.error("Add failed:", err);
     }
   };
- 
-  // 2. Toggle Status: คลิกที่ชื่อเพื่อขีดฆ่า (Mark as Done)
+
+  // toggle status
   const toggleTask = async (id) => {
     try {
+
       const res = await axios.put(`${API_URL}/${id}`);
-      // อัปเดตสถานะใน State เพื่อให้หน้าจอเปลี่ยนตามข้อมูลใน DB
-      setTasks(tasks.map(t => t._id === id ? res.data : t));
+
+      setTasks(
+        tasks.map((t) =>
+          t._id === id ? res.data : t
+        )
+      );
+
     } catch (err) {
       console.error("Update failed:", err);
     }
   };
- 
-  // 3. Delete Button: ปุ่มสำหรับลบรายการงาน
+
+  // delete task
   const deleteTask = async (id) => {
     try {
+
       await axios.delete(`${API_URL}/${id}`);
-      // กรองรายการที่ถูกลบออกไปจากหน้าจอ
-      setTasks(tasks.filter(t => t._id !== id));
+
+      setTasks(
+        tasks.filter((t) => t._id !== id)
+      );
+
     } catch (err) {
       console.error("Delete failed:", err);
     }
   };
- 
+
   return (
-    <div>
-      <h1>To-Do List (MERN Stack)</h1>
- 
-      {/* ส่วนสำหรับพิมพ์งานใหม่ */}
+    <div className="container">
+
+      <h1>Smart Task Board</h1>
+
       <form onSubmit={addTask}>
         <input
           type="text"
+          placeholder="พิมพ์งาน..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="กรอกชื่องานที่นี่..."
         />
-        <button type="submit">Add Task</button>
+
+        <button type="submit">
+          Add Task
+        </button>
       </form>
- 
+
       <hr />
- 
-      {/* ส่วนแสดงรายการงาน (Task List) */}
+
       <ul>
         {tasks.map((task) => (
-          <li key={task._id} style={{ marginBottom: "10px" }}>
+
+          <li key={task._id}>
+
             <span
               onClick={() => toggleTask(task._id)}
               style={{
                 cursor: "pointer",
-                // ถ้า completed เป็น true ให้ขีดฆ่า (Mark as Done)
-                textDecoration: task.done ? "line-through" : "none",
-                color: task.done ? "gray" : "black"
+                textDecoration:
+                  task.status === "Completed"
+                    ? "line-through"
+                    : "none"
               }}
             >
-              {task.text}
+              {task.title}
             </span>
-            {"  "}
-            <button onClick={() => deleteTask(task._id)}>Delete</button>
+
+            <button
+              onClick={() => deleteTask(task._id)}
+            >
+              Delete
+            </button>
+
           </li>
+
         ))}
       </ul>
- 
-      {tasks.length === 0 && <p>ไม่มีรายการงานค้างอยู่</p>}
+
+      {tasks.length === 0 && (
+        <p>ไม่มีงาน</p>
+      )}
+
     </div>
   );
 }
- 
+
 export default App;
