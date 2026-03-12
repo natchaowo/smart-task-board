@@ -3,7 +3,7 @@ import axios from "axios";
 import "./App.css";
 
 // URL ของ backend
-const API_URL = "https://natcha-special-topics.onrender.com/tasks";
+const API_URL = "https://miniproject-kivg.onrender.com";
 
 function App() {
 
