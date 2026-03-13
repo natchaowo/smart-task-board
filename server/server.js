@@ -10,8 +10,11 @@ const app = express();
 
 
 // --- CORS Configuration ---
-app.use(cors());
-app.options("*", cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type"]
+}));
 
 
 // --- Middlewares ---
@@ -19,14 +22,9 @@ app.use(express.json());
 
 
 // --- Connect MongoDB ---
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("✅ MongoDB Connected");
-  })
-  .catch((err) => {
-    console.error("❌ MongoDB Error:", err);
-  });
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch(err => console.error("❌ MongoDB Error:", err));
 
 
 // --- Test Route ---
@@ -35,10 +33,7 @@ app.get("/", (req, res) => {
 });
 
 
-// ==========================
-//        API ROUTES
-// ==========================
-
+// --- API Routes ---
 
 // GET all tasks
 app.get("/tasks", async (req, res) => {
@@ -46,9 +41,7 @@ app.get("/tasks", async (req, res) => {
     const tasks = await Task.find().sort({ createdAt: -1 });
     res.json(tasks);
   } catch (err) {
-    res.status(500).json({
-      error: "ไม่สามารถดึงข้อมูลได้",
-    });
+    res.status(500).json({ error: "ไม่สามารถดึงข้อมูลได้" });
   }
 });
 
@@ -56,11 +49,12 @@ app.get("/tasks", async (req, res) => {
 // POST create task
 app.post("/tasks", async (req, res) => {
   try {
+
     const { title, category, priority } = req.body;
 
     if (!title || !category) {
       return res.status(400).json({
-        error: "ต้องมี title และ category",
+        error: "ต้องมี title และ category"
       });
     }
 
@@ -68,7 +62,7 @@ app.post("/tasks", async (req, res) => {
       title,
       category,
       priority: priority || "Medium",
-      status: "Pending",
+      status: "Pending"
     });
 
     const savedTask = await newTask.save();
@@ -77,20 +71,21 @@ app.post("/tasks", async (req, res) => {
 
   } catch (err) {
     res.status(400).json({
-      error: err.message,
+      error: err.message
     });
   }
 });
 
 
-// PUT toggle task status
+// PUT toggle status
 app.put("/tasks/:id", async (req, res) => {
   try {
+
     const task = await Task.findById(req.params.id);
 
     if (!task) {
       return res.status(404).json({
-        error: "ไม่พบรายการ",
+        error: "ไม่พบรายการ"
       });
     }
 
@@ -105,7 +100,7 @@ app.put("/tasks/:id", async (req, res) => {
 
   } catch (err) {
     res.status(400).json({
-      error: "อัปเดตสถานะไม่สำเร็จ",
+      error: "อัปเดตสถานะไม่สำเร็จ"
     });
   }
 });
@@ -118,12 +113,12 @@ app.delete("/tasks/:id", async (req, res) => {
     await Task.findByIdAndDelete(req.params.id);
 
     res.json({
-      message: "ลบสำเร็จ",
+      message: "ลบสำเร็จ"
     });
 
   } catch (err) {
     res.status(400).json({
-      error: "ลบไม่สำเร็จ",
+      error: "ลบไม่สำเร็จ"
     });
   }
 });
