@@ -10,14 +10,11 @@ const app = express();
 
 
 // --- CORS Configuration ---
-const corsOptions = {
-  origin: "*", // อนุญาตทุก domain (Vercel เรียกได้)
+app.use(cors({
+  origin: "https://smart-task-board-natchaowos-projects.vercel.app", // อนุญาตทุก domain (Vercel เรียกได้)
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type"],
-};
-
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+  credentials: true
+}));
 
 
 // --- Middlewares ---
