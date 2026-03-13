@@ -10,11 +10,8 @@ const app = express();
 
 
 // --- CORS Configuration ---
-app.use(cors({
-  origin: "https://smart-task-board-natchaowos-projects.vercel.app", // อนุญาตทุก domain (Vercel เรียกได้)
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  credentials: true
-}));
+app.use(cors());
+app.options("*", cors());
 
 
 // --- Middlewares ---
@@ -24,8 +21,12 @@ app.use(express.json());
 // --- Connect MongoDB ---
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch((err) => console.error("❌ MongoDB Error:", err));
+  .then(() => {
+    console.log("✅ MongoDB Connected");
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB Error:", err);
+  });
 
 
 // --- Test Route ---
@@ -34,7 +35,10 @@ app.get("/", (req, res) => {
 });
 
 
-// --- API Routes ---
+// ==========================
+//        API ROUTES
+// ==========================
+
 
 // GET all tasks
 app.get("/tasks", async (req, res) => {
@@ -42,7 +46,9 @@ app.get("/tasks", async (req, res) => {
     const tasks = await Task.find().sort({ createdAt: -1 });
     res.json(tasks);
   } catch (err) {
-    res.status(500).json({ error: "ไม่สามารถดึงข้อมูลได้" });
+    res.status(500).json({
+      error: "ไม่สามารถดึงข้อมูลได้",
+    });
   }
 });
 
@@ -68,6 +74,7 @@ app.post("/tasks", async (req, res) => {
     const savedTask = await newTask.save();
 
     res.status(201).json(savedTask);
+
   } catch (err) {
     res.status(400).json({
       error: err.message,
@@ -76,7 +83,7 @@ app.post("/tasks", async (req, res) => {
 });
 
 
-// PUT toggle status
+// PUT toggle task status
 app.put("/tasks/:id", async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -87,11 +94,15 @@ app.put("/tasks/:id", async (req, res) => {
       });
     }
 
-    task.status = task.status === "Pending" ? "Completed" : "Pending";
+    task.status =
+      task.status === "Pending"
+        ? "Completed"
+        : "Pending";
 
     await task.save();
 
     res.json(task);
+
   } catch (err) {
     res.status(400).json({
       error: "อัปเดตสถานะไม่สำเร็จ",
@@ -103,11 +114,13 @@ app.put("/tasks/:id", async (req, res) => {
 // DELETE task
 app.delete("/tasks/:id", async (req, res) => {
   try {
+
     await Task.findByIdAndDelete(req.params.id);
 
     res.json({
       message: "ลบสำเร็จ",
     });
+
   } catch (err) {
     res.status(400).json({
       error: "ลบไม่สำเร็จ",
