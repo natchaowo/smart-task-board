@@ -3,7 +3,7 @@ import axios from "axios";
 import "./App.css";
 
 // URL ของ backend
-const API_URL = "https://miniproject-kivg.onrender.com";
+const API_URL = "https://miniproject-kivg.onrender.com/tasks";
 
 function App() {
 
@@ -17,20 +17,32 @@ function App() {
 
   const fetchTasks = async () => {
     try {
+
       const res = await axios.get(API_URL);
-      setTasks(res.data);
+
+      // ป้องกัน map error
+      if (Array.isArray(res.data)) {
+        setTasks(res.data);
+      } else {
+        console.error("API ไม่ได้ส่ง array:", res.data);
+        setTasks([]);
+      }
+
     } catch (err) {
       console.error("โหลดข้อมูลไม่ได้:", err);
+      setTasks([]);
     }
   };
 
   // เพิ่ม task
   const addTask = async (e) => {
+
     e.preventDefault();
 
     if (!input.trim()) return;
 
     try {
+
       const res = await axios.post(API_URL, {
         title: input,
         category: "Personal",
@@ -47,6 +59,7 @@ function App() {
 
   // toggle status
   const toggleTask = async (id) => {
+
     try {
 
       const res = await axios.put(`${API_URL}/${id}`);
@@ -64,6 +77,7 @@ function App() {
 
   // delete task
   const deleteTask = async (id) => {
+
     try {
 
       await axios.delete(`${API_URL}/${id}`);
@@ -78,11 +92,13 @@ function App() {
   };
 
   return (
+
     <div className="container">
 
       <h1>Smart Task Board</h1>
 
       <form onSubmit={addTask}>
+
         <input
           type="text"
           placeholder="พิมพ์งาน..."
@@ -93,12 +109,14 @@ function App() {
         <button type="submit">
           Add Task
         </button>
+
       </form>
 
       <hr />
 
       <ul>
-        {tasks.map((task) => (
+
+        {Array.isArray(tasks) && tasks.map((task) => (
 
           <li key={task._id}>
 
@@ -115,15 +133,14 @@ function App() {
               {task.title}
             </span>
 
-            <button
-              onClick={() => deleteTask(task._id)}
-            >
+            <button onClick={() => deleteTask(task._id)}>
               Delete
             </button>
 
           </li>
 
         ))}
+
       </ul>
 
       {tasks.length === 0 && (
@@ -131,6 +148,7 @@ function App() {
       )}
 
     </div>
+
   );
 }
 
